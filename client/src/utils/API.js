@@ -1,5 +1,7 @@
 import axios from "axios";
 
+const BASEQUERY = "https://www.googleapis.com/books/v1/volumes?q=";
+
 export default {
   // Gets all books
   getBooks: function() {
@@ -16,5 +18,9 @@ export default {
   // Saves a book to the database
   saveBook: function(bookData) {
     return axios.post("/api/savedbooks", bookData);
+  },
+  searchBooks: function(query){
+    return axios.get(BASEQUERY + query)
   }
+
 };
