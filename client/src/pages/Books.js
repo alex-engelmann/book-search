@@ -48,26 +48,45 @@ class Books extends Component {
         let rawresults = res.data.items;
         let results = [];
 
-        //TODO some books don't have thumbnails, my ternary doesn't seem to work sometimes
+        
+        let filteredresults = rawresults
 
-        results = rawresults.map(result => {
+        //TODO some books don't have thumbnails, my ternary doesn't seem to work sometimes
+        // .filter(result => {
+        //   return (typeof result.volumeInfo.authors !== "array") || (typeof result.volumeInfo.imageLinks !== "undefined" )
+        // })
+      
+
+        results = filteredresults.map(result => {
+          
           result = {
             key: result.id,
             id: result.id,
             title: result.volumeInfo.title,
-            authors: (result.volumeInfo.authors.length > 1) ? result.volumeInfo.authors.join(", ") : result.volumeInfo.authors.toString(),
+            authors: (result.volumeInfo.authors.length ? result.volumeInfo.authors.join(", ") : result.volumeInfo.authors.toString()),
             description: result.volumeInfo.description,
             image: (result.volumeInfo.imageLinks) ? result.volumeInfo.imageLinks.thumbnail : "no image",
             link: result.volumeInfo.canonicalVolumeLink
           }
           return result
         })
-
+        // console.log(results)
         this.setState({ searchResults: results })
         this.setState({ title: "" });
       })
       .catch(err => console.log(err));
   };
+
+  handleBookSave = event => {
+    event.preventDefault();
+    let savedBooks = this.state.searchResults.filter(book => book.id === event.target.id)
+    
+    savedBooks = savedBooks[0];
+    
+    API.saveBook(savedBooks)
+        .then(this.loadBooks())
+        .catch(err => console.log(err))
+  }
 
   render() {
     return (
@@ -101,7 +120,10 @@ class Books extends Component {
                         <div className="card-body">
                           <h5 className="card-title">{book.title} by {book.authors}</h5>
                           <p className="card-text">{book.description}</p>
-                          <a href={book.link} className="btn btn-primary">Link to Google Books</a>
+                          <a href={book.link}><FormBtn>Link to Google Books</FormBtn></a>
+                          <span>   </span>
+                          <FormBtn id={book.id} onClick={this.handleBookSave}>Save this Book</FormBtn>
+        
                         </div>
                     </div>
 
