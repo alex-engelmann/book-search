@@ -81,7 +81,7 @@ class Books extends Component {
           results = res;
           this.setState({ searchResults: results })
           this.setState({ title: "" });
-          console.log(results);
+          // console.log(results);
         }).catch(err => console.error(err));
 
       })
