@@ -48,31 +48,42 @@ class Books extends Component {
         let rawresults = res.data.items;
         let results = [];
 
-        
-        let filteredresults = rawresults
+        function filterResults(rawresults) {
+          //remove books with no authors in the array
+          let filteredResults = rawresults.filter(result => {
+            return (Array.isArray(result.volumeInfo.authors) === true)
+          })
+          filteredResults = filteredResults.filter(result => {
+            return (typeof result.volumeInfo.imageLinks !== "undefined")
+          })
 
-        //TODO some books don't have thumbnails, my ternary doesn't seem to work sometimes
-        // .filter(result => {
-        //   return (typeof result.volumeInfo.authors !== "array") || (typeof result.volumeInfo.imageLinks !== "undefined" )
-        // })
-      
+          let results = filteredResults.map(result => {
 
-        results = filteredresults.map(result => {
-          
-          result = {
-            key: result.id,
-            id: result.id,
-            title: result.volumeInfo.title,
-            authors: (result.volumeInfo.authors.length ? result.volumeInfo.authors.join(", ") : result.volumeInfo.authors.toString()),
-            description: result.volumeInfo.description,
-            image: (result.volumeInfo.imageLinks) ? result.volumeInfo.imageLinks.thumbnail : "no image",
-            link: result.volumeInfo.canonicalVolumeLink
-          }
-          return result
-        })
-        // console.log(results)
-        this.setState({ searchResults: results })
-        this.setState({ title: "" });
+            result = {
+              key: result.id,
+              id: result.id,
+              title: result.volumeInfo.title,
+              authors: (result.volumeInfo.authors.length ? result.volumeInfo.authors.join(", ") : result.volumeInfo.authors.toString()),
+              description: result.volumeInfo.description,
+              image: (result.volumeInfo.imageLinks) ? result.volumeInfo.imageLinks.thumbnail : "no image",
+              link: result.volumeInfo.canonicalVolumeLink
+            }
+            return result
+          })
+          return results;
+        };
+
+        async function asyncCall() {
+          results = await filterResults(rawresults);
+          return results;
+        }
+        asyncCall().then((res) => {
+          results = res;
+          this.setState({ searchResults: results })
+          this.setState({ title: "" });
+          console.log(results);
+        }).catch(err => console.error(err));
+
       })
       .catch(err => console.log(err));
   };
@@ -80,12 +91,12 @@ class Books extends Component {
   handleBookSave = event => {
     event.preventDefault();
     let savedBooks = this.state.searchResults.filter(book => book.id === event.target.id)
-    
+
     savedBooks = savedBooks[0];
-    
+
     API.saveBook(savedBooks)
-        .then(this.loadBooks())
-        .catch(err => console.log(err))
+      .then(this.loadBooks())
+      .catch(err => console.log(err))
   }
 
   render() {
@@ -114,56 +125,56 @@ class Books extends Component {
               <List>
                 {this.state.searchResults.map(book => (
                   <ListItem key={book.id}>
-                    
-                    <div className="card" style={{width: "100%"}}>
-                      <img src={book.image} style={{width: "30%"}} className="card-img-top" alt=""></img>
-                        <div className="card-body">
-                          <h5 className="card-title">{book.title} by {book.authors}</h5>
-                          <p className="card-text">{book.description}</p>
-                          <a href={book.link}><FormBtn>Link to Google Books</FormBtn></a>
-                          <span>   </span>
-                          <FormBtn id={book.id} onClick={this.handleBookSave}>Save this Book</FormBtn>
-        
-                        </div>
+
+                    <div className="card" style={{ width: "100%" }}>
+                      <img src={book.image} style={{ width: "30%" }} className="card-img-top" alt=""></img>
+                      <div className="card-body">
+                        <h5 className="card-title">{book.title} by {book.authors}</h5>
+                        <p className="card-text">{book.description}</p>
+                        <a href={book.link}><FormBtn>Link to Google Books</FormBtn></a>
+                        <span>   </span>
+                        <FormBtn id={book.id} onClick={this.handleBookSave}>Save this Book</FormBtn>
+
+                      </div>
                     </div>
 
 
 
                   </ListItem>
-                    ))}
+                ))}
               </List>
-                ) : (
+            ) : (
                 <h3>No Search Results (yet)</h3>
-                )}
-  
-  
+              )}
+
+
           </Col>
           {/* This is all on the right part of the app */}
           <Col size="md-6 sm-12">
-              <Jumbotron>
-                <h1>Saved Books</h1>
-              </Jumbotron>
-              {this.state.books.length ? (
-                <List>
-                  {this.state.books.map(book => (
-                    <ListItem key={book._id}>
-                      <Link to={"/books/" + book._id}>
-                        <strong>
-                          {book.title} by {book.authors}
-                        </strong>
-                      </Link>
-                      <DeleteBtn onClick={() => this.deleteBook(book._id)} />
-                    </ListItem>
-                  ))}
-                </List>
-              ) : (
-                  <h3>No Results to Display</h3>
-                )}
-            </Col>
+            <Jumbotron>
+              <h1>Saved Books</h1>
+            </Jumbotron>
+            {this.state.books.length ? (
+              <List>
+                {this.state.books.map(book => (
+                  <ListItem key={book._id}>
+                    <Link to={"/books/" + book._id}>
+                      <strong>
+                        {book.title} by {book.authors}
+                      </strong>
+                    </Link>
+                    <DeleteBtn onClick={() => this.deleteBook(book._id)} />
+                  </ListItem>
+                ))}
+              </List>
+            ) : (
+                <h3>No Results to Display</h3>
+              )}
+          </Col>
         </Row>
       </Container>
-        );
-      }
-    }
-    
-    export default Books;
+    );
+  }
+}
+
+export default Books;
